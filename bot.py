@@ -110,5 +110,4 @@ def run_bot():
             print(f"Error processing {pair}: {e}")
 
 if __name__ == "__main__":
-    run_bot()
     
