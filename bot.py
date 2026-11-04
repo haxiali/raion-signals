@@ -4,9 +4,10 @@ import requests
 import pandas as pd
 import yfinance as yf
 
-# === CREDENTIALS ===
-TELEGRAM_BOT_TOKEN = "7432874149"
+# === CREDENTIALS (Hardcoded) ===
+TELEGRAM_BOT_TOKEN = "PASTE_YOUR_BOT_TOKEN_HERE"
 TELEGRAM_CHAT_ID = "-5133609427"
+ADMIN_ID = "7432874149"  # Aapki di gayi ID
 
 BRAND = "RAION SIGNALS"
 
@@ -25,14 +26,14 @@ PAIRS = {
     "GBP/CAD": "GBPCAD=X"
 }
 
-def send_telegram_message(message):
+def send_telegram_message(message, chat_id=TELEGRAM_CHAT_ID):
     if not TELEGRAM_BOT_TOKEN or TELEGRAM_BOT_TOKEN == "PASTE_YOUR_BOT_TOKEN_HERE":
         print("Error: Telegram Bot Token missing!")
         return
     
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {
-        "chat_id": TELEGRAM_CHAT_ID,
+        "chat_id": chat_id,
         "text": message,
         "parse_mode": "Markdown"
     }
@@ -71,7 +72,11 @@ def get_fvg(df):
 
 def run_bot():
     print(f"\n=== {BRAND} Engine Running ===")
-    send_telegram_message(f"🚀 *{BRAND} Live Engine Active!*\nAnalyzing real market data for FVG, Order Blocks, EMA, & RSI across 12 pairs.")
+    
+    # Startup message group aur admin dono par bhejne ke liye
+    startup_msg = f"🚀 *{BRAND} Live Engine Active!*\nScanning 12 currency pairs with optimized logic."
+    send_telegram_message(startup_msg, TELEGRAM_CHAT_ID)
+    send_telegram_message(startup_msg, ADMIN_ID)
 
     for pair, tkr in PAIRS.items():
         try:
@@ -87,14 +92,12 @@ def run_bot():
             e20 = row['E20']
             e50 = row['E50']
             rsi = row['RSI']
-            b_low = row['BB_L']
-            b_up = row['BB_UP']
             fvg = get_fvg(df)
 
             action = None
-            if e20 > e50 and close <= b_low and rsi < 40 and fvg == "BULL":
+            if e20 > e50 and rsi < 45 and (fvg == "BULL" or close <= row['BB_L']):
                 action = "BUY"
-            elif e20 < e50 and close >= b_up and rsi > 60 and fvg == "BEAR":
+            elif e20 < e50 and rsi > 55 and (fvg == "BEAR" or close >= row['BB_UP']):
                 action = "SELL"
 
             if action:
@@ -103,9 +106,12 @@ def run_bot():
                     f"🌐 *Pair:* {pair}\n"
                     f"⚡ *Action:* {action} {'🟢' if action=='BUY' else '🔴'}\n"
                     f"⏱ *Timeframe:* 5m Closed Candle\n"
-                    f"📈 *Indicators:* EMA + BB + RSI + FVG"
+                    f"📈 *Indicators:* EMA + RSI + FVG / BB"
                 )
-                send_telegram_message(msg)
+                # Signals group aur admin dono ko bhejne ke liye
+                send_telegram_message(msg, TELEGRAM_CHAT_ID)
+                send_telegram_message(msg, ADMIN_ID)
+                print(f"Signal sent for {pair}: {action}")
         except Exception as e:
             print(f"Error processing {pair}: {e}")
 
