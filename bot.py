@@ -1,16 +1,15 @@
-mport os
+import os
 import time
 import requests
 import pandas as pd
 import yfinance as yf
 
-# Telegram Credentials
-TELEGRAM_BOT_TOKEN = 7432874149
-TELEGRAM_CHAT_ID = os.-5133609427
+# === CREDENTIALS ===
+TELEGRAM_BOT_TOKEN = "PASTE_YOUR_BOT_TOKEN_HERE"
+TELEGRAM_CHAT_ID = "-5133609427"
 
 BRAND = "RAION SIGNALS"
 
-# Aapke bataye huwe mukammal 12 currency pairs (Yahoo Finance Tickers)
 PAIRS = {
     "EUR/JPY": "EURJPY=X",
     "EUR/USD": "EURUSD=X",
@@ -27,9 +26,10 @@ PAIRS = {
 }
 
 def send_telegram_message(message):
-    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-        print("Telegram credentials missing!")
+    if not TELEGRAM_BOT_TOKEN or TELEGRAM_BOT_TOKEN == "PASTE_YOUR_BOT_TOKEN_HERE":
+        print("Error: Telegram Bot Token missing!")
         return
+    
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
@@ -37,12 +37,12 @@ def send_telegram_message(message):
         "parse_mode": "Markdown"
     }
     try:
-        requests.post(url, json=payload)
+        response = requests.post(url, json=payload)
+        print(f"Telegram Response Status: {response.status_code}")
     except Exception as e:
         print(f"Error sending telegram message: {e}")
 
 def calc_ind(df):
-    # Technical Indicators calculation (EMA, RSI, Bollinger Bands)
     df['E20'] = df['Close'].ewm(span=20).mean()
     df['E50'] = df['Close'].ewm(span=50).mean()
     delta = df['Close'].diff()
@@ -57,7 +57,6 @@ def calc_ind(df):
     return df
 
 def get_fvg(df):
-    # Simple FVG check logic
     if len(df) < 3:
         return None
     h1 = df['High'].iloc[-3]
@@ -71,16 +70,17 @@ def get_fvg(df):
     return None
 
 def run_bot():
-    # Startup message taake Telegram par pata chal jaye engine run ho gaya hai
     print(f"\n=== {BRAND} Engine Running ===")
-    send_telegram_message(f"🚀 *{BRAND} Live Engine Active!*\nAnalyzing real market data for FVG, Order Blocks, EMA, & RSI.")
+    send_telegram_message(f"🚀 *{BRAND} Live Engine Active!*\nAnalyzing real market data for FVG, Order Blocks, EMA, & RSI across 12 pairs.")
 
     for pair, tkr in PAIRS.items():
         try:
+            print(f"Analyzing {pair} ({tkr})...")
             obj = yf.Ticker(tkr)
             df = obj.history(period="7d", interval="5m")
             if df is None or len(df) < 50:
                 continue
+            
             df = calc_ind(df)
             row = df.iloc[-1]
             close = row['Close']
@@ -110,4 +110,5 @@ def run_bot():
             print(f"Error processing {pair}: {e}")
 
 if __name__ == "__main__":
+    run_bot()
     
