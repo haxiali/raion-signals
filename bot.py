@@ -5,7 +5,7 @@ import pandas as pd
 import yfinance as yf
 
 # === CREDENTIALS (Hardcoded) ===
-TELEGRAM_BOT_TOKEN = "PASTE_YOUR_BOT_TOKEN_HERE"
+TELEGRAM_BOT_TOKEN = "7432874149"
 TELEGRAM_CHAT_ID = "-5133609427"
 ADMIN_ID = "7432874149"  # Aapki di gayi ID
 
